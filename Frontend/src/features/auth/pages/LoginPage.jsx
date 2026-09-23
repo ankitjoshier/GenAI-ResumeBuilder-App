@@ -1,30 +1,60 @@
-import { Navigate, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "../auth.form.scss";
+import { useAuth } from "../hooks/useAuth"; // or `import useAuth from "../hooks/useAuth";` if you switch to default export
+import { useState } from "react";
+
 function LoginPage() {
-  const handleSubmit = (e) => {
+  const { loading, handleLogin } = useAuth();
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    await handleLogin({ email, password });
+    navigate("/");
   };
+
+  if (loading) {
+    return (
+      <main>
+        <h1>Loading.....</h1>
+      </main>
+    );
+  }
+
   return (
     <main>
       <div className="form-container">
         <h1>Login</h1>
-        <form onClick={handleSubmit}>
+        <form onSubmit={handleSubmit}>
           <div className="input-group">
             <label htmlFor="email">Email</label>
-            <input type="email" id="email" placeholder="Enter email address." />
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter email address."
+            />
           </div>
           <div className="input-group">
             <label htmlFor="password">Password</label>
             <input
               type="password"
               id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password."
             />
           </div>
-          <button className="button primary-button">Login</button>
+          <button type="submit" className="button primary-button">
+            Login
+          </button>
         </form>
         <p>
-          Don't have an account? <Link to={"/register"}>Register</Link>
+          Don't have an account? <Link to="/register">Register</Link>
         </p>
       </div>
     </main>
