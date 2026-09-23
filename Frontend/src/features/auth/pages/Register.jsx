@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
@@ -13,8 +13,10 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await handleRegister({ username, password, email });
-    navigate("/");
+    const isRegistered = await handleRegister({ username, password, email });
+    if (isRegistered) {
+      navigate("/");
+    }
   };
 
   if (loading) {
@@ -29,7 +31,7 @@ const Register = () => {
     <main>
       <div className="form-container">
         <h1>Register</h1>
-        <form onClick={handleSubmit}>
+        <form onSubmit={handleSubmit}>
           <div className="input-group">
             <label htmlFor="username">Username</label>
             <input

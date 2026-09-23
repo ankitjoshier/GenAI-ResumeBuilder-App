@@ -12,8 +12,10 @@ function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await handleLogin({ email, password });
-    navigate("/");
+    const isLoggedIn = await handleLogin({ email, password });
+    if (isLoggedIn) {
+      navigate("/");
+    }
   };
 
   if (loading) {
