@@ -1,32 +1,55 @@
 const jwt = require("jsonwebtoken");
-const tokenBlacklistModel = require("../models/blacklinst.model");
 
-async function authUser(req, res, next) {
-  const token = req.cookies.token;
-
-  if (!token) {
-    return res.status(401).json({
-      message: "Token not provided",
-    });
-  }
-
-  const isTokenBlacklistModel = await tokenBlacklistModel.findOne({ token });
-
-  if (isTokenBlacklistModel) {
-    return res.status(401).json({
-      message: "token is invalid",
-    });
-  }
-
+const authMiddleware = (req, res, next) => {
   try {
+    let token = null;
+
+    // Get token from Authorization header
+    const authorization = req.headers.authorization;
+
+    if (authorization && authorization.startsWith("Bearer ")) {
+      token = authorization.substring(7).trim();
+    }
+
+    // Also allow token from cookie
+    if (!token && req.cookies && req.cookies.token) {
+      token = req.cookies.token;
+    }
+
+    // Token missing
+    if (!token) {
+      return res.status(401).json({
+        message: "Token is missing",
+      });
+    }
+
+    // Remove accidental quotes
+    token = token.replace(/^["']|["']$/g, "").trim();
+
+    // Check JWT format
+    if (token.split(".").length !== 3) {
+      return res.status(401).json({
+        message: "Invalid Token",
+        error: "JWT must contain 3 parts",
+      });
+    }
+
+    // Verify JWT
     const decoded = jwt.verify(token, process.env.TOKEN);
+
+    console.log("JWT verified successfully");
+
     req.user = decoded;
+
     next();
-  } catch (err) {
+  } catch (error) {
+    console.log("JWT Error:", error.message);
+
     return res.status(401).json({
       message: "Invalid Token",
+      error: error.message,
     });
   }
-}
+};
 
-module.exports = { authUser };
+module.exports = authMiddleware;
